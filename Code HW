@@ -1,0 +1,37 @@
+#include <iostream>
+#include <pthread.h>
+#include <unistd.h> // for sleep
+#include <string>
+
+pthread_mutex_t lock;
+std::string shared_data;
+
+void* writer_thread(void* arg) {
+    pthread_mutex_lock(&lock);
+    shared_data = "Hello from Thread 1!";
+    std::cout << "Writer: Data written to shared variable.\n";
+    pthread_mutex_unlock(&lock);
+    return nullptr;
+}
+
+void* reader_thread(void* arg) {
+    sleep(1); // Give writer time to write
+    pthread_mutex_lock(&lock);
+    std::cout << "Reader: Read from shared variable: " << shared_data << std::endl;
+    pthread_mutex_unlock(&lock);
+    return nullptr;
+}
+
+int main() {
+    pthread_t thread1, thread2;
+    pthread_mutex_init(&lock, nullptr);
+
+    pthread_create(&thread1, nullptr, writer_thread, nullptr);
+    pthread_create(&thread2, nullptr, reader_thread, nullptr);
+
+    pthread_join(thread1, nullptr);
+    pthread_join(thread2, nullptr);
+
+    pthread_mutex_destroy(&lock);
+    return 0;
+}
